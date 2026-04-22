@@ -28,60 +28,87 @@
 
 ## Applications — practical to exotic
 
-Connectome OS is a substrate: what you build *with* it depends on what connectome you load, what stimulus you drive, and what structural questions you ask. The table below spans the practical (things that work on the shipped Tier-1 demo today) to the exotic (things that need the substrate-axis work to finish first, but are what the substrate is *for*).
+Connectome OS is a substrate. What you build *with* it depends on what connectome you load, what stimulus you drive, and what structural questions you ask. The applications below are organized by distance from the shipped Tier-1 demonstrator — the first group works today, the middle group needs API wrappers or corpus preparation but no new research, and the last group needs one or more Phase-2 / Phase-3 items from the implementation plan.
 
-| # | Application | Who / why | How Connectome OS enables it | Tier |
-|---|---|---|---|---|
-| 1 | **FlyWire exploration & audit** | Computational neuroscientists studying *Drosophila*; teaching labs | Load real wiring via `load_flywire_streaming`, drive with deterministic stimulus, watch live partitions + motifs — all without a Python stack | Practical (shipped + fixture-tested) |
-| 2 | **Community-detection ground truth** | Graph-algorithm researchers evaluating Leiden / Louvain variants | The substrate ships with SBM + hub-module ground truth, mincut, level-1 greedy, and multi-level Louvain baselines with published ARI numbers — drop a new algorithm in and get a paired comparison row | Practical |
-| 3 | **Reference LIF for spiking-simulator benchmarks** | Anyone building a spiking simulator or neuromorphic chip who needs a measured, deterministic, open-source baseline | `lif_throughput` bench + bit-exact AC-1 contract; ~7.6 M spikes/sec sparse per-step, single-threaded Rust reference | Practical |
-| 4 | **Connectome-constrained coursework** | Grad students, structured-AI courses | Single `cargo test` command reproduces all 5 acceptance criteria on the default SBM; no MuJoCo / PyTorch / CUDA dependencies | Practical |
-| 5 | **Fragility monitoring on recorded spike data** | Groups with experimental ephys recordings — inject a spike stream into `Observer`, get the live `λ₂` coherence signal and precursor events | The Fiedler detector is substrate-agnostic: feed it a spike stream from anything — biological recording, trained RNN, custom simulator — and the signal is the same | Practical |
-| 6 | **Causal-perturbation tests on trained networks** | Interpretability / alignment researchers studying trained recurrent models | Re-interpret the "connectome" as an RNN weight graph; the mincut + σ-separation test tells you which weight subsets are load-bearing for behaviour X | Semi-practical |
-| 7 | **Graph-constrained RL policy priors** | RL researchers using biological wiring as inductive bias | Initialize policy-network connectivity from a real connectome, measure how much behaviour depends on structure vs learned weights via the same causal-perturbation gate | Semi-practical |
-| 8 | **Neural-architecture pruning with proof** | ML systems groups pruning networks without losing capability | `ruvector-mincut` produces *certified* cuts; AC-5-style σ-separation proves which prunings change behaviour and which don't | Semi-practical |
-| 9 | **Neuromorphic hardware verification** | Chip designers validating spiking silicon against a known-deterministic reference | Connectome OS provides the bit-exact AC-1 contract; run the same stimulus on hardware and Connectome OS, diff the spike traces | Semi-practical |
-| 10 | **Embodied fly navigation in VR** | HRI + embodied-AI research requiring a tractable, fully-inspectable brain | Tier-1 fly scale (~139 k neurons) simulated at > real-time on a workstation; pair with MuJoCo + NeuroMechFly (Phase 3, deferred) to drive a virtual fly through real visual / olfactory stimuli | Exotic — needs Phase 3 body |
-| 11 | **In-silico circuit-lesion studies** | Computational psychiatry exploring focal-lesion hypotheses without animal work | The σ-separation protocol turns "we cut this and behaviour Y changed" into a falsifiable engineering claim with paired controls | Exotic |
-| 12 | **Cross-species connectome transfer tests** | Comparative neuroscience asking "does a motif that matters in fly also matter in mouse?" | Same runtime, two different connectomes, same motif-retrieval index; measure shared behavioural vocabulary | Exotic — needs mouse Tier-2 substrate |
-| 13 | **Connectome-grounded AI safety auditing** | Alignment research: can a system's behaviour be explained by substructure, and is that substructure stable under perturbation? | A connectome-constrained system is uniquely auditable — the structure is *knowable* rather than learned, so AC-5-style "remove this, see what breaks" is meaningful | Exotic |
-| 14 | **Substrate for structural-intelligence research papers** | Anyone pursuing the "cut the brain, measure the fracture" research program as a publishable line | All 13 measurement-driven discoveries are reproducible from the one-liner `cargo bench -p connectome-fly`; the substrate *is* the paper's methods section | Exotic + meta |
+### Part 1 — Practical (works today on the shipped demo)
 
-*Tier labels:* **Practical** = works today on the shipped demo; **Semi-practical** = needs API wrappers or corpus preparation but no new research; **Exotic** = needs one or more Phase-2 / Phase-3 items from the implementation plan (real-data ingest, embodied body, Tier-2 mouse substrate).
+Each of these runs against `examples/connectome-fly/` as it stands. No external data, no missing phase, no research pivot required.
 
-The rule of thumb: if your application wants a deterministic spiking simulation paired with a live structural-analysis loop on a wiring diagram you trust, Connectome OS is the substrate. If your application needs general-purpose AI reasoning, an LLM, or statistical learning from raw data, Connectome OS is not the right tool — it's specifically for systems where the *structure is the thing you want to reason about*.
+| Application | Who / why | How Connectome OS enables it |
+|---|---|---|
+| **FlyWire exploration & audit** | Computational neuroscientists studying *Drosophila*; teaching labs | Load real wiring via `load_flywire_streaming`, drive with deterministic stimulus, watch live partitions + motifs — all without a Python stack |
+| **Community-detection ground truth** | Graph-algorithm researchers evaluating Leiden / Louvain variants | SBM + hub-module ground truth, mincut, level-1 greedy, and multi-level Louvain baselines with published ARI numbers — drop a new algorithm in and get a paired comparison row |
+| **Reference LIF for spiking-simulator benchmarks** | Anyone building a spiking simulator or neuromorphic chip who needs a measured, deterministic, open-source baseline | `lif_throughput` bench + bit-exact AC-1 contract; ~7.6 M spikes/sec sparse per-step, single-threaded Rust reference |
+| **Connectome-constrained coursework** | Grad students, structured-AI courses | Single `cargo test` reproduces all 5 acceptance criteria on the default SBM; no MuJoCo / PyTorch / CUDA dependencies |
+| **Fragility monitoring on recorded spike data** | Groups with experimental ephys recordings | The Fiedler detector is substrate-agnostic — feed it a spike stream from a biological recording, a trained RNN, or a custom simulator, and the live `λ₂` coherence signal + precursor events come out the same |
+
+### Part 2 — Semi-practical (needs API wrappers or corpus preparation, but no new research)
+
+These reuse the shipped substrate on a different kind of input. No new algorithms, no Phase-2/3 work — just thin wrappers and a clear problem statement.
+
+| Application | Who / why | How Connectome OS enables it |
+|---|---|---|
+| **Causal-perturbation tests on trained networks** | Interpretability / alignment researchers studying trained recurrent models | Re-interpret the "connectome" as an RNN weight graph; the mincut + σ-separation test identifies which weight subsets are load-bearing for behaviour X |
+| **Graph-constrained RL policy priors** | RL researchers using biological wiring as inductive bias | Initialize policy-network connectivity from a real connectome, measure how much behaviour depends on structure vs learned weights via the same causal-perturbation gate |
+| **Neural-architecture pruning with proof** | ML systems groups pruning networks without losing capability | `ruvector-mincut` produces *certified* cuts; AC-5-style σ-separation proves which prunings change behaviour and which don't |
+| **Neuromorphic hardware verification** | Chip designers validating spiking silicon against a known-deterministic reference | The bit-exact AC-1 contract gives you a gold-standard spike trace — run the same stimulus on hardware and Connectome OS, diff the traces |
+
+### Part 3 — Exotic (needs Phase-2 or Phase-3 scaffolding)
+
+These are what the substrate is ultimately *for*. Each depends on at least one deferred item from `docs/research/connectome-ruvector/08-implementation-plan.md` (real-data ingest, MuJoCo body, Tier-2 mouse substrate).
+
+| Application | Who / why | How Connectome OS enables it | Blocker |
+|---|---|---|---|
+| **Embodied fly navigation in VR** | HRI + embodied-AI research requiring a tractable, fully-inspectable brain | Tier-1 fly scale (~139 k neurons) simulated at > real-time on a workstation, driving a virtual fly through visual / olfactory stimuli | Phase-3 MuJoCo + NeuroMechFly body |
+| **In-silico circuit-lesion studies** | Computational psychiatry exploring focal-lesion hypotheses without animal work | The σ-separation protocol turns "we cut this and behaviour Y changed" into a falsifiable engineering claim with paired controls | Real FlyWire data for clinical plausibility |
+| **Cross-species connectome transfer tests** | Comparative neuroscience asking "does a motif that matters in fly also matter in mouse?" | Same runtime, two different connectomes, same motif-retrieval index; measure shared behavioural vocabulary | Tier-2 mouse substrate |
+| **Connectome-grounded AI safety auditing** | Alignment research: can a system's behaviour be explained by substructure, and is that substructure stable under perturbation? | A connectome-constrained system is uniquely auditable — the structure is *knowable* rather than learned, so AC-5-style "remove this, see what breaks" is meaningful | Tooling around the existing substrate |
+| **Substrate for structural-intelligence research papers** | Anyone pursuing the "cut the brain, measure the fracture" research program as a publishable line | The 13 measurement-driven discoveries are reproducible from the one-liner `cargo bench -p connectome-fly`; the substrate *is* the paper's methods section | None — this is a meta-application that's already open |
+
+### Rule of thumb
+
+If your application wants a deterministic spiking simulation paired with a live structural-analysis loop on a wiring diagram you trust, Connectome OS is the substrate. If your application needs general-purpose AI reasoning, an LLM, or statistical learning from raw data, Connectome OS is not the right tool — it's specifically for systems where the *structure is the thing you want to reason about*.
 
 ---
 
 ## Introduction
 
-### The problem
+Connectome OS is a Rust runtime that runs a connectome as a live spiking system, watches its structural coherence every 5 ms of simulated time, and lets you **cut load-bearing edges on demand and measure — in σ of a paired control — exactly what breaks**. It is the only tool in its class that treats structural perturbation as a first-class acceptance criterion, not an afterthought.
 
-Whole-brain simulation has two standard outcomes today. Either you run a graph analysis (clusters, motifs, degree distributions) and never touch dynamics, or you run a spiking simulator (Brian2, NEST, Auryn, GeNN) and never extract structural claims from the output. The result is a literature full of published behavior traces that nobody can fully explain — the brain worked, then the brain stopped working, and the difference between those two states is not something the simulator itself can describe.
+### Who this is for
 
-The 2024 *Nature* whole-fly-brain paper broke through on the first half of that gap. Given the [FlyWire connectome](https://flywire.ai) and a leaky integrate-and-fire (LIF) model, it reproduced grooming, feeding, and other sensorimotor behaviors. [Eon (2026)](#) followed with a virtual-body integration (NeuroMechFly + a visual system model), closing the perception–action loop for the same connectome.
+- **Computational neuroscientists** with a connectome and a question that looks like *"does this substructure matter for behaviour X?"*
+- **Interpretability / alignment researchers** who want a falsifiable, σ-gated definition of "causal component" for recurrent systems.
+- **Graph-algorithm researchers** who need a deterministic, labelled, paired-baseline substrate to evaluate community-detection algorithms against.
+- **Systems engineers** building spiking simulators, neuromorphic chips, or graph-native runtimes who need a measured, bit-exact Rust reference.
+- **Teachers** who need a single `cargo test` that reproduces every claim of a Tier-1 brain simulation on a commodity workstation, with no Python / CUDA / MuJoCo stack.
 
-What neither effort supplies is the **explanatory layer** — a system that, while the simulation runs, keeps telling you *which substructure of the graph is carrying the current behavior, and what happens if you break it.*
+### The gap this closes
 
-That explanatory layer is what Connectome OS is.
+Brain-scale simulation today has two shapes. You either **run a spiking simulator** (Brian2, NEST, Auryn, GeNN) and get behaviour traces with no structural explanation, or **run a graph analysis** (clusters, motifs, degree distributions) and never touch dynamics. When the simulated system works-then-stops-working, neither tool can tell you why.
 
-### The positioning
+The 2024 *Nature* whole-fly-brain paper broke through on the simulation half — a leaky integrate-and-fire model built straight from the [FlyWire connectome](https://flywire.ai) reproduced grooming, feeding, and other sensorimotor behaviours with zero learned parameters. What it did not ship is the **explanatory layer**: a system that, while the simulation runs, keeps telling you which substructure of the graph is carrying the current behaviour, and what happens if you remove it.
 
-This is not a model of consciousness. It is not mind upload. It is not a substrate-independent intelligence claim. Those framings are hype traps; they misdescribe what is actually buildable; and they obscure what makes the work useful.
+Connectome OS is that explanatory layer, implemented against the same LIF primitives.
 
-The correct framing is narrower and more defensible:
+### What's different about it
 
-> A structurally grounded, partially biological, causal simulation system.
+- **Live Fiedler coherence detection.** The second-smallest eigenvalue of the co-firing graph's Laplacian is recomputed every 5 ms simulated and emitted as a `CoherenceEvent` when the graph is about to fragment. Measured: ≥ 50 ms lead on ≥ 70 % of constructed-collapse trials. **No other spiking simulator ships this signal live.**
+- **σ-separation as a gate test.** Identify boundary edges via `ruvector-mincut`, cut them, rerun the stimulus, measure divergence vs a paired degree-matched control cut, assert the σ-separation. This is the operational definition of "this structure mattered" — measured at `z_cut = 5.55σ` (hits the 5σ SOTA target) on the Tier-1 demo.
+- **Bit-exact determinism within path.** Same seeds produce bit-identical spike traces. Repeat runs are a contract, not a hope. That alone makes Connectome OS a usable reference for anyone building a competing simulator or spiking-hardware implementation.
+- **Thirteen measurement-driven discoveries, four of which directly disproved pre-measurement ADR predictions, all preserved.** No hidden gaps, no threshold relaxations to force green tests. The ADR §17 table of findings is the methodology section.
 
-Most teams simulate and observe. Connectome OS simulates, **perturbs, and measures structural causality** in real time. The edge isn't scale — it's **control**. Once the substrate is in place, the interesting questions stop being "what did the system do?" and start being **"what structure made it inevitable, and what happens when I remove that structure?"**
+### The positioning, in one paragraph
+
+Connectome OS is **not** a model of consciousness, **not** mind upload, and **not** a substrate-independent intelligence claim. It is a *structurally grounded, partially biological, causal simulation system* — infrastructure for probing intelligence as a system whose wiring is *knowable* (the connectome) rather than learned. The edge is not scale. The edge is **control**: once the substrate is in place, the interesting questions stop being "what did the system do?" and start being "what structure made that inevitable, and what happens when I remove that structure?" If that framing matches what you're trying to build, Connectome OS is the right tool. If your project is general-purpose AI reasoning, an LLM, or statistical learning from raw data, Connectome OS is not the right tool — and the [Applications](#applications--practical-to-exotic) table above already sorts the match-quality question.
 
 ### Why now
 
 Three things converge:
 
-1. **Connectomes exist.** The full adult *Drosophila* connectome (~139,000 neurons, ~50M synapses) is publicly available through FlyWire / Janelia. Mouse cortical barrels are within a few years. The data bottleneck that killed prior attempts is substantially gone at fly scale.
-2. **Event-driven LIF on a modern CPU is fast enough in the sparse regime.** ~7.6 million spikes/sec per step at N=1024, single-threaded, pure Rust — 38× to 150× the published Brian2 C++-codegen range.
-3. **RuVector already ships the analysis primitives.** `ruvector-mincut` (subpolynomial dynamic cuts with certificates), `ruvector-sparsifier` (spectral sparsification), `ruvector-attention` (SDPA for spike-window embedding). These weren't built for neuroscience — they were built for graph systems — and that turns out to be exactly what a connectome runtime needs.
+1. **Connectomes exist at fly scale.** The full adult *Drosophila* connectome (~139 k neurons, ~50 M synapses) is publicly available through FlyWire / Janelia. Mouse cortical barrels are a few years out. The data bottleneck that killed prior attempts is gone at Tier 1.
+2. **CPU-only event-driven LIF is fast enough in the realistic (sparse) regime.** ~7.6 M spikes/sec per step at N=1024, single-threaded, pure Rust — 38× to 150× the published Brian2 + C++-codegen range.
+3. **The graph primitives already exist.** `ruvector-mincut` ships subpolynomial dynamic cuts with audit certificates; `ruvector-sparsifier` ships spectral sparsification; `ruvector-attention` ships SDPA. Those weren't built for neuroscience — they were built for graph systems — and that turns out to be exactly what a connectome runtime needs.
 
 Any one of those conditions in isolation has been true for years. The three together is a new window.
 
