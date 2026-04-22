@@ -99,6 +99,7 @@ Connectome OS is that explanatory layer, implemented against the same LIF primit
 - **σ-separation as a gate test.** Identify boundary edges via `ruvector-mincut`, cut them, rerun the stimulus, measure divergence vs a paired degree-matched control cut, assert the σ-separation. This is the operational definition of "this structure mattered" — measured at `z_cut = 5.55σ` (hits the 5σ SOTA target) on the Tier-1 demo.
 - **Bit-exact determinism within path.** Same seeds produce bit-identical spike traces. Repeat runs are a contract, not a hope. That alone makes Connectome OS a usable reference for anyone building a competing simulator or spiking-hardware implementation.
 - **Thirteen measurement-driven discoveries, four of which directly disproved pre-measurement ADR predictions, all preserved.** No hidden gaps, no threshold relaxations to force green tests. The ADR §17 table of findings is the methodology section.
+- **Shipped Leiden community-detection baseline.** The three-phase Traag-et-al.-2019 refinement algorithm is in-tree (`src/analysis/leiden.rs`) with **perfect ARI = 1.000 on a hand-crafted 2-community planted SBM** where Louvain collapses to ARI = 0.000 — direct vindication that refinement-then-aggregate is what hub-heavy SBM community detection needs.
 
 ### The positioning, in one paragraph
 
@@ -118,7 +119,7 @@ Any one of those conditions in isolation has been true for years. The three toge
 
 ## Features
 
-Connectome OS ships six first-class capabilities. Each has a test and a publicly measured number. **All 73 tests pass / 0 fail** on the reference host at [commit `0430231b8`](https://github.com/ruvnet/RuVector/commit/0430231b8).
+Connectome OS ships six first-class capabilities. Each has a test and a publicly measured number. **All 87 tests pass / 0 fail** on the reference host at [commit `f58f0c98f`](https://github.com/ruvnet/RuVector/commit/f58f0c98f) — the Leiden-refinement merge.
 
 | Feature | What it does | Measured |
 |---|---|---|
