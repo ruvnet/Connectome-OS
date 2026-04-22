@@ -13,6 +13,7 @@
 
 ## Table of contents
 
+- [Applications — practical to exotic](#applications--practical-to-exotic)
 - [Introduction](#introduction)
 - [Features](#features)
 - [Capabilities & comparison](#capabilities--comparison)
@@ -22,6 +23,33 @@
 - [Measurement-driven findings](#measurement-driven-findings)
 - [What Connectome OS is *not*](#what-connectome-os-is-not)
 - [Contributing](#contributing)
+
+---
+
+## Applications — practical to exotic
+
+Connectome OS is a substrate: what you build *with* it depends on what connectome you load, what stimulus you drive, and what structural questions you ask. The table below spans the practical (things that work on the shipped Tier-1 demo today) to the exotic (things that need the substrate-axis work to finish first, but are what the substrate is *for*).
+
+| # | Application | Who / why | How Connectome OS enables it | Tier |
+|---|---|---|---|---|
+| 1 | **FlyWire exploration & audit** | Computational neuroscientists studying *Drosophila*; teaching labs | Load real wiring via `load_flywire_streaming`, drive with deterministic stimulus, watch live partitions + motifs — all without a Python stack | Practical (shipped + fixture-tested) |
+| 2 | **Community-detection ground truth** | Graph-algorithm researchers evaluating Leiden / Louvain variants | The substrate ships with SBM + hub-module ground truth, mincut, level-1 greedy, and multi-level Louvain baselines with published ARI numbers — drop a new algorithm in and get a paired comparison row | Practical |
+| 3 | **Reference LIF for spiking-simulator benchmarks** | Anyone building a spiking simulator or neuromorphic chip who needs a measured, deterministic, open-source baseline | `lif_throughput` bench + bit-exact AC-1 contract; ~7.6 M spikes/sec sparse per-step, single-threaded Rust reference | Practical |
+| 4 | **Connectome-constrained coursework** | Grad students, structured-AI courses | Single `cargo test` command reproduces all 5 acceptance criteria on the default SBM; no MuJoCo / PyTorch / CUDA dependencies | Practical |
+| 5 | **Fragility monitoring on recorded spike data** | Groups with experimental ephys recordings — inject a spike stream into `Observer`, get the live `λ₂` coherence signal and precursor events | The Fiedler detector is substrate-agnostic: feed it a spike stream from anything — biological recording, trained RNN, custom simulator — and the signal is the same | Practical |
+| 6 | **Causal-perturbation tests on trained networks** | Interpretability / alignment researchers studying trained recurrent models | Re-interpret the "connectome" as an RNN weight graph; the mincut + σ-separation test tells you which weight subsets are load-bearing for behaviour X | Semi-practical |
+| 7 | **Graph-constrained RL policy priors** | RL researchers using biological wiring as inductive bias | Initialize policy-network connectivity from a real connectome, measure how much behaviour depends on structure vs learned weights via the same causal-perturbation gate | Semi-practical |
+| 8 | **Neural-architecture pruning with proof** | ML systems groups pruning networks without losing capability | `ruvector-mincut` produces *certified* cuts; AC-5-style σ-separation proves which prunings change behaviour and which don't | Semi-practical |
+| 9 | **Neuromorphic hardware verification** | Chip designers validating spiking silicon against a known-deterministic reference | Connectome OS provides the bit-exact AC-1 contract; run the same stimulus on hardware and Connectome OS, diff the spike traces | Semi-practical |
+| 10 | **Embodied fly navigation in VR** | HRI + embodied-AI research requiring a tractable, fully-inspectable brain | Tier-1 fly scale (~139 k neurons) simulated at > real-time on a workstation; pair with MuJoCo + NeuroMechFly (Phase 3, deferred) to drive a virtual fly through real visual / olfactory stimuli | Exotic — needs Phase 3 body |
+| 11 | **In-silico circuit-lesion studies** | Computational psychiatry exploring focal-lesion hypotheses without animal work | The σ-separation protocol turns "we cut this and behaviour Y changed" into a falsifiable engineering claim with paired controls | Exotic |
+| 12 | **Cross-species connectome transfer tests** | Comparative neuroscience asking "does a motif that matters in fly also matter in mouse?" | Same runtime, two different connectomes, same motif-retrieval index; measure shared behavioural vocabulary | Exotic — needs mouse Tier-2 substrate |
+| 13 | **Connectome-grounded AI safety auditing** | Alignment research: can a system's behaviour be explained by substructure, and is that substructure stable under perturbation? | A connectome-constrained system is uniquely auditable — the structure is *knowable* rather than learned, so AC-5-style "remove this, see what breaks" is meaningful | Exotic |
+| 14 | **Substrate for structural-intelligence research papers** | Anyone pursuing the "cut the brain, measure the fracture" research program as a publishable line | All 13 measurement-driven discoveries are reproducible from the one-liner `cargo bench -p connectome-fly`; the substrate *is* the paper's methods section | Exotic + meta |
+
+*Tier labels:* **Practical** = works today on the shipped demo; **Semi-practical** = needs API wrappers or corpus preparation but no new research; **Exotic** = needs one or more Phase-2 / Phase-3 items from the implementation plan (real-data ingest, embodied body, Tier-2 mouse substrate).
+
+The rule of thumb: if your application wants a deterministic spiking simulation paired with a live structural-analysis loop on a wiring diagram you trust, Connectome OS is the substrate. If your application needs general-purpose AI reasoning, an LLM, or statistical learning from raw data, Connectome OS is not the right tool — it's specifically for systems where the *structure is the thing you want to reason about*.
 
 ---
 
