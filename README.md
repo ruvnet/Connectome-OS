@@ -4,6 +4,8 @@
 
 "OS" in the Linux sense: infrastructure for introspection and intervention, not a mystical claim about emergent mind. Not mind upload. Not digital consciousness. Not AGI. Connectome OS is the graph-native runtime that mounts on top of a connectome + a spiking engine and lets you **probe, perturb, and reason about the structure — cut the wiring, measure the fracture, ask what substructure carried the failure.**
 
+> ⚠️ **Alpha / research preview.** Connectome OS is in active development on the [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector) branch. The Tier-1 fly-scale demonstrator (`examples/connectome-fly/`) is shipped and all 73 tests pass; the production `ruvector-connectome` / `ruvector-lif` / `ruvector-embodiment` crates, real FlyWire v783 data ingest, MuJoCo-based embodiment, and Tier-2 mouse-scale substrate are **named follow-ups, not shipped**. APIs may change. Measured numbers, missed SOTA targets, and reverted follow-up levers are documented honestly in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) (13 measurement-driven discoveries preserved). Use in research and internal tooling; hold on anything that expects a stable API contract.
+
 - Source code: [ruvnet/RuVector @ `research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector)
 - Working example (Tier-1 fruit fly): [`examples/connectome-fly/`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector/examples/connectome-fly)
 - Architecture Decision Record: [ADR-154](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md)
