@@ -4,7 +4,7 @@
 
 "OS" in the Linux sense: infrastructure for introspection and intervention, not a mystical claim about emergent mind. Not mind upload. Not digital consciousness. Not AGI. Connectome OS is the graph-native runtime that mounts on top of a connectome + a spiking engine and lets you **probe, perturb, and reason about the structure — cut the wiring, measure the fracture, ask what substructure carried the failure.**
 
-> ⚠️ **Alpha / research preview.** Connectome OS is in active development on the [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector) branch. The Tier-1 fly-scale demonstrator (`examples/connectome-fly/`) is shipped and all 73 tests pass; the production `ruvector-connectome` / `ruvector-lif` / `ruvector-embodiment` crates, real FlyWire v783 data ingest, MuJoCo-based embodiment, and Tier-2 mouse-scale substrate are **named follow-ups, not shipped**. APIs may change. Measured numbers, missed SOTA targets, and reverted follow-up levers are documented honestly in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) (13 measurement-driven discoveries preserved). Use in research and internal tooling; hold on anything that expects a stable API contract.
+> ⚠️ **Alpha / research preview.** Connectome OS is in active development on the [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector) branch. The Tier-1 fly-scale demonstrator (`examples/connectome-fly/`) is shipped and all 95 tests pass; the production `ruvector-connectome` / `ruvector-lif` / `ruvector-embodiment` crates, real FlyWire v783 data ingest, MuJoCo-based embodiment, and Tier-2 mouse-scale substrate are **named follow-ups, not shipped**. APIs may change. Measured numbers, missed SOTA targets, and reverted follow-up levers are documented honestly in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) (**20 measurement-driven discoveries preserved**, including the 4-for-20 orthogonal-axis win pattern and the CPM-Leiden 3.97× win over modularity-Leiden on the default SBM). Use in research and internal tooling; hold on anything that expects a stable API contract.
 
 - Source code: [ruvnet/RuVector @ `research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector)
 - Working example (Tier-1 fruit fly): [`examples/connectome-fly/`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector/examples/connectome-fly)
@@ -65,7 +65,7 @@ These are what the substrate is ultimately *for*. Each depends on at least one d
 | **In-silico circuit-lesion studies** | Computational psychiatry exploring focal-lesion hypotheses without animal work | The σ-separation protocol turns "we cut this and behaviour Y changed" into a falsifiable engineering claim with paired controls | ✅ `LesionStudy` + `CandidateCut` + `LesionReport` in `src/lesion.rs`. Paired-trial loop + σ distance against a nominated reference cut; deterministic. Productizes AC-5. | Real FlyWire data for clinical plausibility |
 | **Cross-species connectome transfer tests** | Comparative neuroscience asking "does a motif that matters in fly also matter in mouse?" | Same runtime, two different connectomes, same motif-retrieval index; measure shared behavioural vocabulary | ⏳ Not yet — needs a second heterogeneous connectome loaded into the same runtime | Tier-2 mouse substrate |
 | **Connectome-grounded AI safety auditing** | Alignment research: can a system's behaviour be explained by substructure, and is that substructure stable under perturbation? | A connectome-constrained system is uniquely auditable — the structure is *knowable* rather than learned, so AC-5-style "remove this, see what breaks" is meaningful | ✅ `StructuralAudit::new(&conn, stim).run()` in `src/audit.rs` — one call produces a `StructuralAuditReport` with coherence events, both mincut partitions, motif-corpus size, and σ-separation on auto-generated boundary vs interior cuts | None — the tooling *is* the shipped scaffolding |
-| **Substrate for structural-intelligence research papers** | Anyone pursuing the "cut the brain, measure the fracture" research program as a publishable line | The 13 measurement-driven discoveries are reproducible from the one-liner `cargo bench -p connectome-fly`; the substrate *is* the paper's methods section | ✅ Already open — no scaffolding needed | None |
+| **Substrate for structural-intelligence research papers** | Anyone pursuing the "cut the brain, measure the fracture" research program as a publishable line | The 20 measurement-driven discoveries are reproducible from the one-liner `cargo bench -p connectome-fly` + `cargo test -p connectome-fly --release`; the substrate *is* the paper's methods section | ✅ Already open — no scaffolding needed | None |
 
 ### Rule of thumb
 
@@ -98,8 +98,9 @@ Connectome OS is that explanatory layer, implemented against the same LIF primit
 - **Live Fiedler coherence detection.** The second-smallest eigenvalue of the co-firing graph's Laplacian is recomputed every 5 ms simulated and emitted as a `CoherenceEvent` when the graph is about to fragment. Measured: ≥ 50 ms lead on ≥ 70 % of constructed-collapse trials. **No other spiking simulator ships this signal live.**
 - **σ-separation as a gate test.** Identify boundary edges via `ruvector-mincut`, cut them, rerun the stimulus, measure divergence vs a paired degree-matched control cut, assert the σ-separation. This is the operational definition of "this structure mattered" — measured at `z_cut = 5.55σ` (hits the 5σ SOTA target) on the Tier-1 demo.
 - **Bit-exact determinism within path.** Same seeds produce bit-identical spike traces. Repeat runs are a contract, not a hope. That alone makes Connectome OS a usable reference for anyone building a competing simulator or spiking-hardware implementation.
-- **Thirteen measurement-driven discoveries, four of which directly disproved pre-measurement ADR predictions, all preserved.** No hidden gaps, no threshold relaxations to force green tests. The ADR §17 table of findings is the methodology section.
-- **Shipped Leiden community-detection baseline.** The three-phase Traag-et-al.-2019 refinement algorithm is in-tree (`src/analysis/leiden.rs`) with **perfect ARI = 1.000 on a hand-crafted 2-community planted SBM** where Louvain collapses to ARI = 0.000 — direct vindication that refinement-then-aggregate is what hub-heavy SBM community detection needs.
+- **Twenty measurement-driven discoveries, eight of which directly disproved pre-measurement ADR predictions, all preserved.** No hidden gaps, no threshold relaxations to force green tests. The ADR §17 table of findings is the methodology section.
+- **Shipped two community-detection algorithms: modularity-Leiden and weight-normalized CPM-Leiden.** Both in-tree (`src/analysis/leiden.rs`). On a hand-crafted 2-community planted SBM both recover **ARI = 1.000** where plain Louvain collapses to 0.000. On the default 70-module hub-heavy SBM **CPM @ γ=2.25 scores full-partition ARI = 0.425, a 3.97× improvement over modularity-Leiden** (ADR §17 items 14, 17, 18, 19).
+- **A surprise-ranking finding from the branch: on hub-heavy SBMs, *more algorithm is worse* when modularity has a resolution limit.** AC-3a's full-partition ARI now publishes four algorithms side-by-side; greedy level-1 Louvain (0.308) beats multi-level modularity-Leiden (0.107). The fix is a different *objective* (CPM), not a more sophisticated modularity algorithm (ADR §17 item 20).
 
 ### The positioning, in one paragraph
 
@@ -119,7 +120,7 @@ Any one of those conditions in isolation has been true for years. The three toge
 
 ## Features
 
-Connectome OS ships six first-class capabilities. Each has a test and a publicly measured number. **All 87 tests pass / 0 fail** on the reference host at [commit `f58f0c98f`](https://github.com/ruvnet/RuVector/commit/f58f0c98f) — the Leiden-refinement merge.
+Connectome OS ships six first-class capabilities. Each has a test and a publicly measured number. **All 95 tests pass / 0 fail** on the reference host at [commit `cfdcb8bb1`](https://github.com/ruvnet/RuVector/commit/cfdcb8bb1) — the AC-3a full-partition-ARI merge that surfaced discovery #20.
 
 | Feature | What it does | Measured |
 |---|---|---|
@@ -371,7 +372,7 @@ The code for the checkmarks is in [`examples/connectome-fly/`](https://github.co
 
 ## Measurement-driven findings
 
-Connectome OS ships with **13 measurement-driven discoveries** preserved in ADR-154 §17. Each is attached to the commit that produced it and the lesson it encoded. The pattern is deliberate: every "next lever named in the ADR" was empirically tested; six of the ten pre-measurement diagnoses were disproven when measured.
+Connectome OS ships with **20 measurement-driven discoveries** preserved in ADR-154 §17. Each is attached to the commit that produced it and the lesson it encoded. The pattern is deliberate: every "next lever named in the ADR" was empirically tested; **eight of the fifteen pre-measurement diagnoses were disproven when measured**, and four of the twenty landed as unambiguous wins (items 6, 14, 17, 18).
 
 | # | Finding | Lesson |
 |---|---|---|
@@ -388,10 +389,19 @@ Connectome OS ships with **13 measurement-driven discoveries** preserved in ADR-
 | 11 | Multi-level Louvain collapses to one community on hub-heavy SBMs | This is exactly what Leiden's refinement phase was introduced to fix |
 | 12 | Rate-histogram and SDPA tie at sub-random — **encoder axis ruled out** | The crudest encoder that preserves all raster info ties the engineered one; encoder isn't the bottleneck |
 | 13 | Raster-regime labels collapse to 92 % monoculture — **labels axis ruled out** | The substrate saturates every window into the same raster regime; labels can't rescue precision |
+| 14 | **Leiden refinement delivers ARI = 1.000 on a 2-community planted SBM** (Louvain collapses to 0.000) | Refinement-then-aggregate fixes the exact Louvain-collapse failure mode from #11. **First Louvain-family algorithm on the branch to hit a named SOTA target on any input.** |
+| 15 | Bucket sort canonical-order delivers *dispatch order* but not cross-path bit-exact traces (0.5 % spike-count divergence between baseline and optimized persists) | The optimized path's active-set pruning is a *correctness deviation* from dense baseline. Cross-path contract ships at ≤ 10 % envelope, not bit-exact. |
+| 16 | Naive CPM on edge-weight-scaled γ collapses to 1 community at any useful γ | CPM's γ is in *edge-weight units*; synapse weights of O(10–100) dwarf γ·n_c. Named rider: weight-normalize edges so γ is dimensionless. |
+| 17 | **Weight-normalized CPM at γ ∈ [2, 4] recovers ARI = 1.000 on planted 2-community SBM**; 109 communities on the 70-module default SBM | First case on this branch where a pre-measurement diagnosis (item 16's normalization rider) was correct *and* the predicted remediation worked. |
+| 18 | Full-partition ARI on default SBM: **CPM @ γ=2 scores 0.393, modularity-Leiden 0.107 — 3.7× win**. 2-way coarsening was hiding it. | **A test's coarsening choice is as much a threshold decision as its numerical tolerances.** Two algorithms under-scored their paper claims for 19 commits because the metric was wrong. |
+| 19 | Fine-γ sweep lifts CPM peak to **0.425 @ γ ∈ [2.25, 2.5]**. γ=1.75 recovers exactly 70 communities (ground-truth count) at ari=0.348 | On this substrate, "match community count" and "maximize ARI" are distinct optimization targets with different γ values. |
+| 20 | AC-3a full-partition ARI ranking: **CPM 0.425 > greedy-level-1 0.308 > Leiden 0.107 > Louvain multi-level 0.000** | **On hub-heavy SBMs, more algorithm is worse** when modularity has a resolution limit. Greedy level-1 beats multi-level Leiden by 2.9×; the fix is a different objective (CPM), not a more sophisticated modularity algorithm. |
 
-The deepest generalisable insight: **when several structurally-different remediations all miss the same target, the target is on a different axis than the ones being searched.** That insight validated item 6 (adaptive cadence — orthogonal axis of *when*) and is the reason items 12 and 13 could triangulate AC-2's real problem (substrate, not encoder / corpus / labels).
+The deepest generalisable insight: **when several structurally-different remediations all miss the same target, the target is on a different axis than the ones being searched.** That insight validated item 6 (adaptive cadence — orthogonal axis of *when*), item 14 (Leiden refinement — orthogonal axis of *what* gets aggregated), and item 17 (weight-normalized CPM — orthogonal axis of *quality function*). Items 12, 13 used the same rule to triangulate AC-2's real problem (substrate, not encoder / corpus / labels). Items 18 and 20 added a refinement: *a test's metric choice can hide the real ranking — sometimes the axis that's wrong is the axis you're using to measure wins.*
 
 Of the three AC-2 axes in the §13 framing, encoder (item 12), corpus (item 10), and labels (item 13) are empirically ruled out. **Substrate is the sole remaining lever** — real FlyWire v783 ingest replacing the synthetic SBM. That's a data-ingest engineering task, not a research pivot.
+
+For AC-3a (community detection on the default SBM), the 0.75 SOTA target remains 1.76× above CPM's 0.425 peak. The remaining gap is the modularity-resolution-limit-adjacent ceiling — a CPM-specific refinement phase (not the current modularity-refinement) is the named next lever.
 
 ---
 
