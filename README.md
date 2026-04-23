@@ -2,13 +2,15 @@
 
 **A debugging and control layer for neural circuits whose wiring is *read off a map*, not inferred from gradients.**
 
-![Connectome OS UI — live Rust LIF backend](docs/screenshots/ui-live-rust-backend.png)
+![Connectome OS UI — live 115K-neuron FlyWire brain, real Rust LIF backend](docs/screenshots/connectome-os-full-flybrain.png)
 
-*Live UI, driven end-to-end by the Rust LIF engine. The top-bar `engine` pill reads `rust-lif crate=0.1.0 n=1024 modules=70 witness=…`; the **witness is a per-process boot counter**, so no static mock could forge it. Every spike in the raster, every λ₂ sample in the coherence plot, and every community snapshot comes from [`examples/connectome-fly/src/bin/ui_server.rs`](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/examples/connectome-fly/src/bin/ui_server.rs) driving the real `Engine` + `Observer` + CPM-Leiden pipeline and streaming to the browser over SSE. Verified end-to-end with [agent-browser](https://npmjs.com/agent-browser): zero console errors on a full interactive tour, and `window._real_spikes_total` crosses ~10⁵ real spikes inside five seconds.*
+*Live UI driven end-to-end by the Rust LIF engine running the **real 115,151-neuron FlyWire fly brain** (2,676,592 unique synapses, loaded from the Princeton codex.flywire.ai release). The top-bar `engine` pill reads `rust-lif substrate=flywire-princeton-csv n=115,151 syn=2,676,592 witness=…`; the **witness is a per-process boot counter**, so no static mock could forge it. Every spike in the raster comes from [`examples/connectome-fly/src/bin/ui_server.rs`](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/examples/connectome-fly/src/bin/ui_server.rs) driving the real `Engine` over the Princeton-format gzipped CSVs, streamed to the browser over SSE. Verified end-to-end with [agent-browser](https://npmjs.com/agent-browser): zero console errors; `window._real_spikes_total` crosses **6 million real spikes inside a few seconds** on the full brain.*
+
+**In plain language:** a real fly brain — 115,151 neurons, 2.7 million wires — is running inside your laptop, right now, in Rust. The browser window shows actual spikes as they happen. You can cut a bundle of wires and watch which behaviours break. You can ask which neurons are talking to which. The brain is not learned; it is copied from a real fly via an electron microscope (the FlyWire project), and our code just executes its wiring. We are not claiming the fly is conscious or uploaded. We built a debugger for it.
 
 "OS" is used in the Linux sense — infrastructure for introspection and intervention, not a claim about emergence, mind-uploads, or AGI. Connectome OS mounts on top of a connectome plus a spiking engine and gives you primitives to **cut the wiring, measure the fracture, and ask what substructure carried the failure.**
 
-> ⚠️ **Alpha / research preview.** Active development on [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector). The Tier-1 fly-scale demonstrator at `examples/connectome-fly/` ships today — 97 tests green. The production `ruvector-connectome` / `ruvector-lif` / `ruvector-embodiment` crates, real FlyWire v783 ingest, MuJoCo-based embodiment, and the Tier-2 mouse-scale substrate are **named follow-ups, not shipped**; APIs may change. Every measured number, every missed SOTA target, and every reverted "next lever" is documented in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) — **26 measurement-driven discoveries** so far, including the 4-of-26 orthogonal-axis win pattern, the CPM-Leiden 3.97× win over modularity-Leiden on the default SBM, and the current CPM ceiling of **0.599 full-ARI at (N=512, num_modules=20, γ=4.0)** — leaving the AC-3a gap at 1.25× the 0.75 SOTA target, down from 1.76× at N=1024. Safe for research and internal tooling; not safe for anything that expects a stable API contract.
+> ⚠️ **Alpha / research preview.** Active development on [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector). The Tier-1 demonstrator at `examples/connectome-fly/` ships today — 97 tests green — and **runs against the real 115,151-neuron FlyWire Princeton dataset** (head commit `dd7306765`) in addition to the 1,024-neuron synthetic SBM. Production crates (`ruvector-connectome`, `ruvector-lif`, `ruvector-embodiment`), MuJoCo-based embodiment, and the Tier-2 mouse-scale substrate are **named follow-ups, not shipped**; APIs may change. The Fiedler detector melts at 115K neurons without `CONNECTOME_SKIP_FIEDLER=1` — O(n³) eigensolver-at-scale is an open item (ADR-154 §16, discovery #7). Every measured number, every missed SOTA target, and every reverted "next lever" is documented in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) — **30 measurement-driven discoveries** so far, including 4 unambiguous wins, 9 ruled-out ADR-named "next levers", and the current CPM community-detection ceiling of **0.671 full-ARI at (N=512, num_modules=19, hub=1, γ=4.4)** — AC-3a gap at **1.12× the 0.75 SOTA target**, down from 1.76× at N=1024. Safe for research and internal tooling; not safe for anything that expects a stable API contract.
 
 - Source code: [ruvnet/RuVector @ `research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector)
 - Working example (Tier-1 fruit fly): [`examples/connectome-fly/`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector/examples/connectome-fly)
@@ -208,6 +210,42 @@ cargo bench -p connectome-fly --bench opt_d_isolation
 Expected output from `run_demo`: a ~1 KB JSON document with `connectome` stats, `simulation` spike totals, `coherence.events_total`, a `partition` with class histograms, and `motifs[]` with top-k repeated spike-window patterns.
 
 **Hardware requirements:** any modern x86_64 CPU with AVX2 (single-threaded; no GPU required). Memory: ~4 GB peak for the Tier-1 demonstrator; ~2 GB for the connectome itself.
+
+### Run the real fly brain in your browser
+
+The full fly — 115,151 neurons, 2.7 million connections — ships with the repo as two gzipped CSVs (the Princeton codex.flywire.ai dump, ~28 MB total). After cloning:
+
+```bash
+# 1. Build the Rust backend that runs the brain.
+cargo build --release --bin ui_server
+
+# 2. Start the brain. The env vars disable two expensive analyses
+#    (Fiedler coherence detector and community detection) which are
+#    too slow at this scale without the open "eigensolver-at-scale"
+#    work; leave them on to run against the small 1024-neuron demo.
+CONNECTOME_FLYWIRE_PRINCETON_DIR=examples/connectome-fly/assets \
+CONNECTOME_SKIP_FIEDLER=1 \
+CONNECTOME_SKIP_COMMUNITIES=1 \
+./target/release/ui_server &
+
+# 3. Start the browser UI.
+cd examples/connectome-fly/ui && npm install && npm run dev
+
+# 4. Open http://localhost:5173/. The green banner at the top should
+#    read:  engine=rust-lif substrate=flywire-princeton-csv
+#            n=115,151 syn=2,676,592 witness=…
+#    If you see that banner, you are watching the real fly brain fire.
+```
+
+**Measured on a commodity host** (single thread, no GPU):
+
+| Config | Ticks / 5 s wall | Real spikes / 5 s | Notes |
+|---|---|---|---|
+| 1024-neuron synthetic SBM, Fiedler on | ~200 | ~150,000 | Default path |
+| 115k-neuron FlyWire, Fiedler on | ~2 | ~400,000 | Detector dominates |
+| **115k-neuron FlyWire, Fiedler off** | **~50** | **~2,200,000** | Recommended at scale |
+
+**How to tell it's real, not a mock:** open the browser console. Every time you restart the Rust process, the `witness` number changes. Kill the Rust process and `window._real_spikes_total` stops climbing — a mock would keep going. The full identity is at `window.__connectomeRealStatus` (`engine`, `substrate`, `num_neurons`, `num_synapses`, `witness`, `mock: false`).
 
 ---
 
