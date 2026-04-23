@@ -4,13 +4,11 @@
 
 ![Connectome OS UI — live 115K-neuron FlyWire brain, real Rust LIF backend](docs/screenshots/connectome-os-full-flybrain.png)
 
-*Live UI driven end-to-end by the Rust LIF engine running the **real 115,151-neuron FlyWire fly brain** (2,676,592 unique synapses, loaded from the Princeton codex.flywire.ai release). The top-bar `engine` pill reads `rust-lif substrate=flywire-princeton-csv n=115,151 syn=2,676,592 witness=…`; the **witness is a per-process boot counter**, so no static mock could forge it. Every spike in the raster comes from [`examples/connectome-fly/src/bin/ui_server.rs`](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/examples/connectome-fly/src/bin/ui_server.rs) driving the real `Engine` over the Princeton-format gzipped CSVs, streamed to the browser over SSE. Verified end-to-end with [agent-browser](https://npmjs.com/agent-browser): zero console errors; `window._real_spikes_total` crosses **6 million real spikes inside a few seconds** on the full brain.*
+*A real fly brain is running inside your laptop. 115,151 neurons, 2.7 million connections, copied from an actual fly by the [FlyWire](https://flywire.ai) project. The screenshot shows real spike activity from that brain, streamed to the browser from a Rust program that reads the wiring and steps the neurons forward in time. The green banner at the top (`engine=rust-lif substrate=flywire-princeton-csv n=115,151 syn=2,676,592 witness=…`) includes a random number that changes every time the Rust program restarts — if you were looking at a pre-recorded mock, it couldn't do that. You can verify this yourself: clone the repo, run one command, and 6 million real spikes fire in the first few seconds.*
 
-**In plain language:** a real fly brain — 115,151 neurons, 2.7 million wires — is running inside your laptop, right now, in Rust. The browser window shows actual spikes as they happen. You can cut a bundle of wires and watch which behaviours break. You can ask which neurons are talking to which. The brain is not learned; it is copied from a real fly via an electron microscope (the FlyWire project), and our code just executes its wiring. We are not claiming the fly is conscious or uploaded. We built a debugger for it.
+**"OS" means the Linux kind, not a mystical one.** Think of Connectome OS as a debugger for brains whose wiring is mapped. It does four things: (1) runs the brain forward in time, (2) watches the structure as it fires, (3) lets you cut specific connections, (4) measures what changed. That is all. We are not claiming emergence, consciousness, uploads, or AGI. We built an inspection layer, the way `top` and `strace` are inspection layers for a computer.
 
-"OS" is used in the Linux sense — infrastructure for introspection and intervention, not a claim about emergence, mind-uploads, or AGI. Connectome OS mounts on top of a connectome plus a spiking engine and gives you primitives to **cut the wiring, measure the fracture, and ask what substructure carried the failure.**
-
-> ⚠️ **Alpha / research preview.** Active development on [`research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector). The Tier-1 demonstrator at `examples/connectome-fly/` ships today — 97 tests green — and **runs against the real 115,151-neuron FlyWire Princeton dataset** (head commit `dd7306765`) in addition to the 1,024-neuron synthetic SBM. Production crates (`ruvector-connectome`, `ruvector-lif`, `ruvector-embodiment`), MuJoCo-based embodiment, and the Tier-2 mouse-scale substrate are **named follow-ups, not shipped**; APIs may change. The Fiedler detector melts at 115K neurons without `CONNECTOME_SKIP_FIEDLER=1` — O(n³) eigensolver-at-scale is an open item (ADR-154 §16, discovery #7). Every measured number, every missed SOTA target, and every reverted "next lever" is documented in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md) — **30 measurement-driven discoveries** so far, including 4 unambiguous wins, 9 ruled-out ADR-named "next levers", and the current CPM community-detection ceiling of **0.671 full-ARI at (N=512, num_modules=19, hub=1, γ=4.4)** — AC-3a gap at **1.12× the 0.75 SOTA target**, down from 1.76× at N=1024. Safe for research and internal tooling; not safe for anything that expects a stable API contract.
+> ⚠️ **This is an alpha research preview.** It works, but things will change. The Tier-1 fly-scale demonstrator under `examples/connectome-fly/` is shipped — 97 tests pass, and it runs against both the 1,024-neuron synthetic brain and the real 115,151-neuron FlyWire Princeton dataset (head commit `dd7306765`). The bigger scaffolding — separate `ruvector-connectome` / `ruvector-lif` / `ruvector-embodiment` crates, MuJoCo body embodiment, mouse-scale substrate — is planned but not built yet. One known rough edge: the coherence detector (that `λ₂` number in the corner) is too slow to run on the full 115K-neuron brain; you have to start the server with `CONNECTOME_SKIP_FIEDLER=1` until we close the "eigensolver-at-scale" item. Every measured number, every missed target, and every reverted attempt lives in [ADR-154 §17](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/adr/ADR-154-connectome-embodied-brain-example.md): **30 measurement-driven discoveries**, 4 of which are unambiguous wins, 9 of which disproved our own pre-measurement guesses. Best community-detection result so far: **0.671** — we're within **1.12×** of a 0.75 state-of-the-art target, down from 1.76× when we started. Use this for research; do not depend on the APIs staying fixed.
 
 - Source code: [ruvnet/RuVector @ `research/connectome-ruvector`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector)
 - Working example (Tier-1 fruit fly): [`examples/connectome-fly/`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector/examples/connectome-fly)
@@ -126,7 +124,7 @@ Any one of those conditions in isolation has been true for years. The three toge
 
 ## Features
 
-Connectome OS ships six first-class capabilities. Each has a test and a publicly measured number. **All 95 tests pass / 0 fail** on the reference host at [commit `cfdcb8bb1`](https://github.com/ruvnet/RuVector/commit/cfdcb8bb1) — the AC-3a full-partition-ARI merge that surfaced discovery #20.
+Connectome OS ships seven first-class capabilities. Each has a test and a publicly measured number. **All 97 tests pass / 0 fail** on the reference host at [commit `dd7306765`](https://github.com/ruvnet/RuVector/commit/dd7306765) — the live 115,151-neuron FlyWire Princeton run.
 
 | Feature | What it does | Measured |
 |---|---|---|
@@ -136,13 +134,16 @@ Connectome OS ships six first-class capabilities. Each has a test and a publicly
 | **Structural + functional partition** | Two mincut paths — `structural_partition` on the static graph (recovers SBM modules) + `functional_partition` on coactivation (moves with stimulus) | AC-3a + AC-3b both **PASS** |
 | **Spike-window motif index** | SDPA-embedded 100 ms spike rasters, indexed in-memory for nearest-neighbour retrieval of repeated patterns | AC-2: precision@5 = 0.60 distance-proxy (honest gap vs SOTA 0.80; see findings below) |
 | **Deterministic reproducibility** | Every run keyed by `(connectome_seed, stimulus_seed, engine_seed)` produces bit-identical spike traces within-path | AC-1 bit-exact on 194,784 spikes across repeat runs |
+| **Live Rust → browser UI** | `ui_server` binary streams real spikes, real Fiedler λ₂, and real CPM community snapshots over Server-Sent-Events; Vite + EventSource on the browser side; no Web-Worker mocks | End-to-end validated via agent-browser: zero console errors, `window._real_spikes_total` advances monotonically, per-process `witness` counter proves no static mock |
 
 Additional infrastructure:
 
-- **FlyWire v783 ingest** (`src/connectome/flywire/`) — fixture-tested TSV parser; streaming variant drops the ~2 GB intermediate `Vec<SynapseRecord>` buffer on real-scale data
-- **Sparse-Fiedler dispatch** (`src/observer/sparse_fiedler.rs`) — `O(n + nnz)` memory path at n > 1024; 40× memory reduction at N=10K vs dense
+- **Real FlyWire ingest, two formats**:
+  - `flywire::streaming::load_flywire_streaming` — column-named TSV parser for the v783 release (fixture-tested on a 100-neuron hand-authored set)
+  - `flywire::princeton::load_flywire_princeton` — gzipped-CSV parser for the Princeton codex.flywire.ai dump; smoke-tested on the full **115,151-neuron / 2,676,592-synapse** dataset shipped under `examples/connectome-fly/assets/`
+- **Sparse-Fiedler dispatch** (`src/observer/sparse_fiedler.rs`) — `O(n + nnz)` memory path at n > 1024; 40× memory reduction at N=10K vs dense; O(n³) eigensolver still melts at N=115k without an active-subset rider (open item)
 - **Degree-stratified null sampler** (`src/connectome/stratified_null.rs`) — decile-matched random-cut baseline for AC-5 at FlyWire scale
-- **Multi-level Louvain baseline** (`src/analysis/structural.rs::louvain_labels`) — the stepping stone Leiden's refinement phase will beat; kept with a docstring warning because it over-merges on hub-heavy SBMs
+- **Multi-level Louvain baseline** (`src/analysis/structural.rs::louvain_labels`) — kept with a docstring warning; item 11 in the ADR §17 table, superseded by Leiden + CPM (items 14, 17, 30)
 - **Opt D delay-sorted CSR** (`src/lif/delay_csr.rs`) — per-row CSR sorted by synaptic delay; opt-in behind `EngineConfig.use_delay_sorted_csr`
 - **GPU SDPA scaffold** (`src/analysis/gpu.rs`) — cudarc-gated; CPU fallback; panics with an actionable diagnostic if the toolkit isn't linked
 
@@ -177,8 +178,8 @@ The Brian2/Auryn/NEST numbers are *published* ranges. We have not re-run them in
 
 | Tier | Scope | Neurons | Status |
 |---|---|---|---|
-| **Tier 1** | Fruit fly (`Drosophila`), partial mouse cortex | 10⁴ – 10⁵ | **Shipped.** `examples/connectome-fly/` is the Tier-1 demonstrator; FlyWire v783 ingest is fixture-tested. |
-| **Tier 2** | Larger mouse regions, multi-region | 10⁵ – 10⁶ | Feasible; ~29 engineer-weeks in the implementation plan. Memory dominated by synapses; requires SSD-backed graph + aggressive sparsification. |
+| **Tier 1** | Fruit fly (`Drosophila`), partial mouse cortex | 10⁴ – 10⁵ | **Shipped, real data.** `examples/connectome-fly/` runs against the **full 115,151-neuron FlyWire Princeton dataset** (2,676,592 synapses) shipped under `assets/`, as well as the 1,024-neuron synthetic SBM. |
+| **Tier 2** | Larger mouse regions, multi-region | 10⁵ – 10⁶ | Feasible; ~29 engineer-weeks in the implementation plan. Memory dominated by synapses; needs active-subset Fiedler to avoid the O(n³) melt observed at 115k. |
 | **Tier 3** | Full mammalian / human brain | 10⁹ – 10¹¹ | **Not feasible at any horizon in this project.** Compute insufficient *and* biological parameters don't exist *and* the connectome doesn't exist. Explicit non-goal. |
 
 ---
@@ -395,8 +396,10 @@ Repeated spike-raster patterns in 100 ms windows get embedded via SDPA and index
 
 | Deliverable | Status |
 |---|---|
-| FlyWire v783 TSV ingest | ✅ fixture-tested; real 2 GB data fetch is left to the user |
-| Streaming ingest (memory-efficient) | ✅ in-tree |
+| FlyWire v783 TSV ingest | ✅ fixture-tested 100-neuron hand-authored set |
+| **FlyWire Princeton CSV ingest (codex.flywire.ai format)** | ✅ **real 115,151-neuron / 2,676,592-synapse dataset** ships with the repo under `assets/` |
+| Streaming ingest (memory-efficient, gzipped CSV + column-named TSV) | ✅ in-tree, zero Python deps |
+| **Live browser UI over SSE** | ✅ Vite + EventSource, zero-mock, `witness` counter proves real stream |
 | Event-driven LIF engine | ✅ with SIMD + delay-CSR + adaptive detection |
 | Fiedler coherence detector | ✅ Jacobi (n ≤ 96) + dense power (n ≤ 1024) + sparse (n > 1024) |
 | Mincut structural partition | ✅ via `ruvector-mincut::canonical::exact` |
@@ -406,7 +409,8 @@ Repeated spike-raster patterns in 100 ms windows get embedded via SDPA and index
 | **MuJoCo 3 + NeuroMechFly body** | ❌ Phase 3 of the implementation plan; separate ADR |
 | Visual-system stimulus module | ❌ Phase 3 |
 | Cross-path bit-exact determinism | ⏳ named follow-up |
-| Leiden refinement phase for AC-3a | ⏳ multi-level Louvain baseline shipped; refinement is future work |
+| Leiden refinement phase for AC-3a | ✅ shipped; modularity-Leiden hits ARI=1.000 on planted SBM (#14), CPM-Leiden hits **0.671 full-ARI at N=512/19-modules/γ=4.4 on the default SBM (#30)** |
+| **Active-subset Fiedler for 10⁴ ≤ N ≤ 10⁵** | ⏳ open item — detector melts at 115k; run with `CONNECTOME_SKIP_FIEDLER=1` until closed |
 
 The code for the checkmarks is in [`examples/connectome-fly/`](https://github.com/ruvnet/RuVector/tree/research/connectome-ruvector/examples/connectome-fly). The deferred items have their engineering estimates in [`docs/research/connectome-ruvector/08-implementation-plan.md`](https://github.com/ruvnet/RuVector/blob/research/connectome-ruvector/docs/research/connectome-ruvector/08-implementation-plan.md).
 
@@ -414,7 +418,7 @@ The code for the checkmarks is in [`examples/connectome-fly/`](https://github.co
 
 ## Measurement-driven findings
 
-Connectome OS ships with **20 measurement-driven discoveries** preserved in ADR-154 §17. Each is attached to the commit that produced it and the lesson it encoded. The pattern is deliberate: every "next lever named in the ADR" was empirically tested; **eight of the fifteen pre-measurement diagnoses were disproven when measured**, and four of the twenty landed as unambiguous wins (items 6, 14, 17, 18).
+Connectome OS ships with **30 measurement-driven discoveries** preserved in ADR-154 §17. Each is attached to the commit that produced it and the lesson it encoded. The pattern is deliberate: every "next lever named in the ADR" was empirically tested; **nine of the fifteen pre-measurement diagnoses were disproven when measured**, and four of the thirty landed as unambiguous wins (items 6, 14, 17, 18). Items 20–30 tightened the CPM community-detection ceiling from an apparent plateau at 0.425 (N=1024) to **0.671 at (N=512, 19 modules, hub=1, γ=4.4)** — a 12 % jump in the last iteration alone, achieved by stepping from a coarse-of-5 module sweep to step-of-1.
 
 | # | Finding | Lesson |
 |---|---|---|
@@ -438,12 +442,22 @@ Connectome OS ships with **20 measurement-driven discoveries** preserved in ADR-
 | 18 | Full-partition ARI on default SBM: **CPM @ γ=2 scores 0.393, modularity-Leiden 0.107 — 3.7× win**. 2-way coarsening was hiding it. | **A test's coarsening choice is as much a threshold decision as its numerical tolerances.** Two algorithms under-scored their paper claims for 19 commits because the metric was wrong. |
 | 19 | Fine-γ sweep lifts CPM peak to **0.425 @ γ ∈ [2.25, 2.5]**. γ=1.75 recovers exactly 70 communities (ground-truth count) at ari=0.348 | On this substrate, "match community count" and "maximize ARI" are distinct optimization targets with different γ values. |
 | 20 | AC-3a full-partition ARI ranking: **CPM 0.425 > greedy-level-1 0.308 > Leiden 0.107 > Louvain multi-level 0.000** | **On hub-heavy SBMs, more algorithm is worse** when modularity has a resolution limit. Greedy level-1 beats multi-level Leiden by 2.9×; the fix is a different objective (CPM), not a more sophisticated modularity algorithm. |
+| 21 | **CPM wins on 5/5 seeds at mean ratio 3.98×** — reproducibility verified | The 3.97× default-seed headline is not a single-seed artefact. |
+| 22 | CPM N-scaling sweep at fixed γ=2.25 — advantage peaks at N=1024 (3.98×), lower at N=512 (2.55×) and N=2048 (2.74×) | The 4× headline is N-specific; direction (CPM > modularity) holds at every scale. |
+| 23 | Per-scale γ sweep — γ-peak shifts monotonically with N (2.75 → 2.25 → 1.75); **N=512 peak 0.532 > N=1024 peak 0.425** | The "peaks at default N=1024" intuition is wrong; the default substrate wasn't at its optimum scale. |
+| 24 | Fine-γ at N=512 + small-N check — new ceiling **0.549 @ γ=3.10, N=512**; γ-peak monotonic in N, ARI-peak non-monotonic | "Smaller N wins" is not the pattern; *there is a scale-optimal N for the substrate*, and for this SBM it's ~N=512. AC-3a gap narrows to 1.37×. |
+| 25 | CPM-specific refinement phase tested — **93 % regression** | The named next lever collapses: refinement-from-singletons can't overcome γ·n_v·n_s at γ ∈ [2, 3] where CPM works. **9th ADR-named lever ruled out by measurement.** |
+| 26 | N=512 module-count sweep — **new ceiling 0.599 @ modules=20, γ=4.0** | Module count is a real axis; the 14.6-neurons/module default wasn't optimal. Landscape is multi-modal. AC-3a gap 1.37× → 1.25×. |
+| 27 | Cross-scale constant-density (25.6 neurons/mod) sweep — **N=1024 jumps from 0.425 → 0.516** just by changing num_modules | The "N=512 wins" finding was density-dependent. Landscape is 3-D (N × density × γ), not 2-D. |
+| 28 | Hub-fraction sweep at N=1024 (null) — narrow peak at hub=3 (7.5 %), no new ceiling | "Fewer hubs win" from N=512 does NOT generalise to N=1024. **Second case on the branch of a small-N hypothesis extrapolating wrong at large N.** |
+| 29 | Fine num_modules at N=1024/hub=3 — N=1024 peak lifts to **0.531 @ density=34.1** | Optimal density shifts with N (25.6 at N=512, 34.1 at N=1024). The 4-D landscape (N × density × γ × hub) does not factorize. |
+| 30 | Fine 2-D grid at N=512 with step-of-1 on modules — **new branch best 0.671 @ modules=19, hub=1, γ=4.4** | +12 % on the coarse item-26 peak from grid resolution alone. **AC-3a gap narrows 1.25× → 1.12×** — closest observed on the branch. |
 
-The deepest generalisable insight: **when several structurally-different remediations all miss the same target, the target is on a different axis than the ones being searched.** That insight validated item 6 (adaptive cadence — orthogonal axis of *when*), item 14 (Leiden refinement — orthogonal axis of *what* gets aggregated), and item 17 (weight-normalized CPM — orthogonal axis of *quality function*). Items 12, 13 used the same rule to triangulate AC-2's real problem (substrate, not encoder / corpus / labels). Items 18 and 20 added a refinement: *a test's metric choice can hide the real ranking — sometimes the axis that's wrong is the axis you're using to measure wins.*
+The deepest generalisable insight: **when several structurally-different remediations all miss the same target, the target is on a different axis than the ones being searched.** That insight validated item 6 (adaptive cadence — orthogonal axis of *when*), item 14 (Leiden refinement — orthogonal axis of *what* gets aggregated), and item 17 (weight-normalized CPM — orthogonal axis of *quality function*). Items 12, 13 used the same rule to triangulate AC-2's real problem (substrate, not encoder / corpus / labels). Items 18 and 20 added: *a test's metric choice can hide the real ranking — sometimes the axis that's wrong is the axis you're using to measure wins.* Items 22–30 added a further refinement: *when an ARI peak appears to plateau, check the grid resolution, the fixed hyperparameters, and the assumed constant-density choice — all three understated the ceiling by a combined 58 %* (0.425 → 0.671 without changing the algorithm).
 
-Of the three AC-2 axes in the §13 framing, encoder (item 12), corpus (item 10), and labels (item 13) are empirically ruled out. **Substrate is the sole remaining lever** — real FlyWire v783 ingest replacing the synthetic SBM. That's a data-ingest engineering task, not a research pivot.
+Of the three AC-2 axes in the §13 framing, encoder (item 12), corpus (item 10), and labels (item 13) are empirically ruled out. **Substrate is the sole remaining lever** — and `examples/connectome-fly/assets/` now ships the real 115,151-neuron FlyWire Princeton dataset, so the ingest is no longer blocking.
 
-For AC-3a (community detection on the default SBM), the 0.75 SOTA target remains 1.76× above CPM's 0.425 peak. The remaining gap is the modularity-resolution-limit-adjacent ceiling — a CPM-specific refinement phase (not the current modularity-refinement) is the named next lever.
+For AC-3a (community detection on the default SBM), the 0.75 SOTA target is now **1.12× above CPM's 0.671 peak** at (N=512, modules=19, hub=1, γ=4.4). The remaining gap is open research — nine of the fifteen ADR-named levers have been ruled out, so the next named tries are: (a) active-subset Fiedler (infrastructure, unblocks measurements at 115k), (b) degree-stratified AC-5 null at real-FlyWire scale, (c) substrate-specific non-singleton CPM refinement start state.
 
 ---
 
