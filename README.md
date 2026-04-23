@@ -2,9 +2,11 @@
 
 **A debugging and control layer for neural circuits whose wiring is *read off a map*, not inferred from gradients.**
 
-![Connectome OS UI — live 115K-neuron FlyWire brain, real Rust LIF backend](docs/screenshots/connectome-os-full-flybrain.png)
+**[Open the live dashboard → ruvnet.github.io/Connectome-OS](https://ruvnet.github.io/Connectome-OS/)** · *the static UI shell is public; the green "engine=rust-lif" banner flips on only when you run the Rust backend locally (instructions in [Quick start](#quick-start))*
 
-*A real fly brain is running inside your laptop. 115,151 neurons, 2.7 million connections, copied from an actual fly by the [FlyWire](https://flywire.ai) project. The screenshot shows real spike activity from that brain, streamed to the browser from a Rust program that reads the wiring and steps the neurons forward in time. The green banner at the top (`engine=rust-lif substrate=flywire-princeton-csv n=115,151 syn=2,676,592 witness=…`) includes a random number that changes every time the Rust program restarts — if you were looking at a pre-recorded mock, it couldn't do that. You can verify this yourself: clone the repo, run one command, and 6 million real spikes fire in the first few seconds.*
+[![Connectome OS UI — live 115K-neuron FlyWire brain, real Rust LIF backend](docs/screenshots/connectome-os-full-flybrain.png)](https://ruvnet.github.io/Connectome-OS/)
+
+*A real fly brain is running inside your laptop. 115,151 neurons, 2.7 million connections, copied from an actual fly by the [FlyWire](https://flywire.ai) project. The screenshot (click to open the live dashboard) shows real spike activity from that brain, streamed to the browser from a Rust program that reads the wiring and steps the neurons forward in time. The green banner at the top (`engine=rust-lif substrate=flywire-princeton-csv n=115,151 syn=2,676,592 witness=…`) includes a random number that changes every time the Rust program restarts — if you were looking at a pre-recorded mock, it couldn't do that. You can verify this yourself: clone the repo, run one command, and 6 million real spikes fire in the first few seconds.*
 
 **"OS" means the Linux kind, not a mystical one.** Think of Connectome OS as a debugger for brains whose wiring is mapped. It does four things: (1) runs the brain forward in time, (2) watches the structure as it fires, (3) lets you cut specific connections, (4) measures what changed. That is all. We are not claiming emergence, consciousness, uploads, or AGI. We built an inspection layer, the way `top` and `strace` are inspection layers for a computer.
 
